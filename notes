@@ -1,0 +1,3 @@
+keygen
+-key should be same size or longer than message being encrypted
+-each bit/char of the plaintext is encrypted by combining it with the corresponding char bit/char from the pad using modular addition
