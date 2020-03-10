@@ -6,7 +6,7 @@
 #define CHAR_SET_SZ 27
 
 char* RandomKey(size_t key_length);
-void MakeKeyFile(char* otp_key);
+void WriteKey(char* otp_key);
 
 int main(int argc, char *argv[]){
     srand(time(NULL));
@@ -15,7 +15,7 @@ int main(int argc, char *argv[]){
 
     otp_key = RandomKey(key_length);
     //printf("otp_key: %s[%d]\n", otp_key, strlen(otp_key));
-    //MakeKeyFile(otp_key);    
+    WriteKey(otp_key);    
     
     free(otp_key); //free memory allocated by RandomKey()
     return 0;
@@ -43,6 +43,15 @@ char* RandomKey(size_t key_length){
 /**********************************************************************
  * 
  **********************************************************************/
-void MakeKeyFile(char* otp_key){
+void WriteKey(char* otp_key){
+    FILE* output_file = fopen("key_file", "w+");
+    if(output_file == NULL){
+        perror("Unable to create output file: ");
+        exit(1);
+    }
+    else{
+        fprintf(output_file, "%s\n", otp_key);
+        fclose(output_file);
+    }
 
 }
