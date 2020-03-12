@@ -9,8 +9,11 @@ all: keygen otp_enc_d
 keygen: keygen.c
 	$(CC) -o keygen keygen.c $(CFLAGS)
 
-otp_end_d: otp_enc_d.c network_helpers.c
-	$(CC) -o otp_end_d otp_end_d.c network_helpers.c $(CFLAGS)
+otp_enc_d: otp_enc_d.c network_helpers.c
+	$(CC) -o otp_enc_d otp_enc_d.c network_helpers.c $(CFLAGS)
+
+otp_enc: otp_enc.c network_helpers.c
+	$(CC) -o otp_enc otp_enc_d.c network_helpers.c $(CFLAGS)
 
 clean:
 	$(RM) keygen otp_enc_d *.o *~
