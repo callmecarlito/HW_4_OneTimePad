@@ -2,8 +2,8 @@
 CC = gcc 
 #compiler flags:
 #-g -ansi -Wall - pedantic -std=gnu99 -I -Wno-missing-braces
-CFLAGS = -g -Wall -std=gnu99 
-OBJECTS = keygen
+CFLAGS = -g -Wall -I -std=gnu99 
+OBJECTS = keygen otp_enc_d
 
 all: $(OBJECTS)
 
@@ -20,4 +20,4 @@ $(OBJECTS): %: %.c
 #	$(CC) $(CFLAGS) -o exec_cmnds.o exec_cmnds.c
 
 clean:
-	$(RM) keygen *.o *~
+	$(RM) keygen otp_enc_d *.o *~
