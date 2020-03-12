@@ -12,9 +12,9 @@
 
 int main(int argc, char *argv[]){
 
-    int port_number, socket_fd, connection_fd, chars_recvd;
+    int port_number, socket_fd, connection_fd;
     socklen_t sz_client_info;
-    char msg_buf[256];
+    //char msg_buf[256];
     struct sockaddr_in server_addr, client_addr;
 
     pid_t child_pid = -5;
@@ -23,14 +23,14 @@ int main(int argc, char *argv[]){
 
 
     if(argc < 2){
-        fprintf(stderr, "Invalid number of arguments\n");
+        fprintf(stderr, "otp_enc_d: Invalid number of arguments\n");
         exit(1);
     }
 
     port_number = atoi(argv[1]); //convert user entered port number to int
 
     if(port_number == 0){
-        fprintf(stderr, "Invalid port number entered\n");
+        fprintf(stderr, "otp_enc_d: Invalid port number entered\n");
         exit(1);
     }    
     //set up address struct for server
@@ -72,6 +72,11 @@ int main(int argc, char *argv[]){
                     perror("otp_enc_d fork error: "); break;
                 case 0: //child process
                     //recv message verifying id of otp_enc
+                    if(VerifiedClient(connection_fd, "OTP_ENC")){
+                        SendMsg(connection_fd, "success");
+                    }
+                    sleep(10);
+                    close(connection_fd);
                         //if no match
                             //close connection socket
                             //print error to stderr
