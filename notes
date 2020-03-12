@@ -1,3 +1,46 @@
 keygen
--key should be same size or longer than message being encrypted
--each bit/char of the plaintext is encrypted by combining it with the corresponding char bit/char from the pad using modular addition
+- key should be same size or longer than message being encrypted
+- each bit/char of the plaintext is encrypted by combining it with the corresponding char bit/char from the pad using modular addition
+
+otp_enc_d / otp_dec_d
+- should handle SIGTERM signal and clean up child processes and close sockets
+  - maybe do SIGINT also
+- memset buffer containing encrypted string ??
+- if error occurs during send/recv
+  - print error to stderr and close connection to client only
+
+pseudocode after connection is accepted b/w otp_enc_d and otp_enc
+
+  verify id
+    recv message from otp_enc
+      if messsage confirms otp_enc 
+        send success message to otp_enc
+      else handle errors
+
+  otp_enc sends size of plaintext file
+  otp_end_d confirms size with message
+  otp_enc sends plaintext file
+  otp_enc_d recv's until num_bytes == sz_plaintext
+  otp_enc_d sends success message   
+
+  otp_enc sends size of key file
+  otp_end_d confirms size with message
+  otp_enc sends key file
+  otp_enc_d recv's until num_bytes == sz_key
+  otp_enc_d sends success message ??
+
+  otp_enc_d encrypts plaintext
+    -recv plaintext and key into files??? or two buffers???
+    
+  otp_enc_d sends size of ciphertext
+  otp_enc confirms size with message
+  otp_enc_d sends ciphertext
+  otp_enc recv's until num_bytes == sz_ciphertext
+    then print out ciphertext
+    send success message to otp_enc_d
+    close connection
+  otp_enc_d close connection
+
+programs rejecting eachother
+- send string that id's itself
+  - if not correct string, close connection
