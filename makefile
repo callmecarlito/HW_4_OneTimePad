@@ -2,7 +2,7 @@
 CC = gcc 
 #compiler flags:
 #-g -ansi -Wall - pedantic -std=gnu99 -I -Wno-missing-braces
-CFLAGS = -g -Wall -I -std=gnu99 
+CFLAGS = -g -Wall -I -std=gnu99 -Wno-missing-braces
 
 all: keygen otp_enc_d otp_enc
 
