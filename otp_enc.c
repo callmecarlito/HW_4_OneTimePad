@@ -15,6 +15,9 @@ int main(int argc, char *argv[]){
     struct sockaddr_in server_addr;
     struct hostent* server_info;
 
+    char* plaintext = argv[1];
+    char* keytext = argv[2];
+
     if(argc < 4){
         fprintf(stderr, "Invalid number of arguments\n");
         exit(1);        
@@ -57,5 +60,19 @@ int main(int argc, char *argv[]){
     if(RecvMsg(socket_fd, "success")){
         printf("CONNECTION TO OTP_ENC_D SUCCESSFUL\n");
     }
+
+    //send size of plaintext file
+    //recv confirmation of size from otp_enc_d
+
+    //send plaintext
+    //recv success
+
+    //send size of key
+    //recv confirmation of size
+
+    //send key
+    //recv success
+
+    //close connection
     return 0;
 }
