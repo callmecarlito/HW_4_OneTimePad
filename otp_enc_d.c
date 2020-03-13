@@ -5,22 +5,34 @@
 #include <sys/types.h> 
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <signal.h>
+#include <sys/wait.h>
 #include "network_helpers.h"
 
 #define BACKLOG 5
 #define MAX_PIDS 100
 
-int main(int argc, char *argv[]){
+static void altSIGTERM(int signo);
+void CleanProcesses();
+void RemoveProcess(int index);
+
+pid_t pids[MAX_PIDS];
+int child_pid_cnt = 0;
+
+int main(int argc, char *argv[]){ 
 
     int port_number, socket_fd, connection_fd;
     socklen_t sz_client_info;
     //char msg_buf[256];
     struct sockaddr_in server_addr, client_addr;
-
+    
     pid_t child_pid = -5;
-    pid_t pids[MAX_PIDS];
-    int child_pid_cnt = 0;
 
+    struct sigaction SIGTERM_action = {0};
+    SIGTERM_action.sa_handler = altSIGTERM;
+    sigfillset(&SIGTERM_action.sa_mask);
+    SIGTERM_action.sa_flags = SA_RESTART;
+    sigaction(SIGTSTP, &SIGTERM_action, NULL);
 
     if(argc < 2){
         fprintf(stderr, "otp_enc_d: Invalid number of arguments\n");
@@ -57,6 +69,9 @@ int main(int argc, char *argv[]){
     }
     //infinite loop to accept connections and pull from queued incoming connections
     while(1){
+        if(child_pid_cnt > 0){
+            CleanProcesses();
+        }
         sz_client_info = sizeof(client_addr);
         //accept connection on socket or block until one connects
         connection_fd = accept(socket_fd, (struct sockaddr*)&client_addr, &sz_client_info);
@@ -77,6 +92,8 @@ int main(int argc, char *argv[]){
                     }
                     sleep(10);
                     close(connection_fd);
+                    exit(0);
+                    break;
                         //if no match
                             //close connection socket
                             //print error to stderr
@@ -98,3 +115,47 @@ int main(int argc, char *argv[]){
     }
     return 0;
 }
+/**********************************************************************
+ * 
+ **********************************************************************/
+static void altSIGTERM(int signo){
+    int status;
+    
+    while(child_pid_cnt > 0){
+        waitpid(-1, &status, 0);
+        child_pid_cnt--;
+    }
+    exit(0);
+}
+/**********************************************************************
+ * 
+ **********************************************************************/
+void CleanProcesses(){
+    int i = 0, status;
+
+    while(i <= child_pid_cnt && child_pid_cnt > 0){
+        pid_t child_pid = waitpid(pids[i], & status, WNOHANG);
+        if(child_pid == -1){
+            perror("Error with waitpid(): ");
+        }
+        else if(child_pid > 0){
+            RemoveProcess(i);
+        }
+        i++;
+    }
+}
+/**********************************************************************
+ * 
+ **********************************************************************/
+void RemoveProcess(int index){
+    int i;
+
+    for(i = index; i < child_pid_cnt; i++){
+        pids[i] = pids[i + 1];
+        printf("Removed process\n");
+    }
+    child_pid_cnt--;
+}
+/**********************************************************************
+ * 
+ **********************************************************************/
