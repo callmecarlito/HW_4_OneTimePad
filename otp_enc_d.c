@@ -98,12 +98,59 @@ int main(int argc, char *argv[]){
                     }
                     else{
                         close(connection_fd);
+                        exit(2);
+                        break;
                     }
                     //recv size of plaintext file from otp_enc
                     ptext_size = RecvSize(connection_fd);
-                    //send message to otp_enc confirming size
-                    SendSize(connection_fd, &ptext_size);
-
+                    if(ptext_size > 0){
+                        //send message to otp_enc confirming size
+                        SendSize(connection_fd, &ptext_size);
+                    }
+                    else{
+                        fprintf(stderr, "File size of %d is invalid\n", ptext_size);
+                        close(connection_fd);
+                        exit(1);
+                        break;
+                    }
+                    ptext = RecvTextfile(connection_fd, ptext_size);
+                    if(ptext != NULL){
+                        printf("\n\n%s\n\n", ptext);
+                        SendMsg(connection_fd, "success");
+                    }
+                    else{
+                        fprintf(stderr, "File not received\n");
+                        close(connection_fd);
+                        exit(1);
+                        break;
+                    }
+                    //recv size of keytext file from otp_enc
+                    key_size = RecvSize(connection_fd);
+                    if(key_size >= ptext_size){
+                        //send message to otp_enc confirming size
+                        SendSize(connection_fd, &key_size);
+                    }
+                    else{
+                        fprintf(stderr, "Key size of %d is invalid\n", ptext_size);
+                        close(connection_fd);
+                        exit(1);
+                        break;
+                    }
+                    ktext = RecvTextfile(connection_fd, key_size);
+                    if(ptext != NULL){
+                        printf("\n\n%s\n\n", ktext);
+                        SendMsg(connection_fd, "success");
+                    }
+                    else{
+                        fprintf(stderr, "File not received\n");
+                        close(connection_fd);
+                        exit(1);
+                        break;
+                    }
+                    //encode plaintext
+                    //send encoded text
+                    free(ptext);
+                    free(ktext);
                     close(connection_fd);
                     exit(0);
                     break;

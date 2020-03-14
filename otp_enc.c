@@ -70,15 +70,69 @@ int main(int argc, char *argv[]){
         close(socket_fd);
         exit(1);
     }
+    //send size of plaintext file
     text_size = FileSize(plaintext);
-    //send size of plaintext file to otp_enc_d
-    SendSize(socket_fd, &text_size);
+    if(text_size > 0){
+        //send size of plaintext file to otp_enc_d
+        SendSize(socket_fd, &text_size);
+    }
+    else{
+        fprintf(stderr, "Invalid file size\n");
+        close(socket_fd);
+        exit(1);
+    }
     //otp_enc_d confirms size of plaintext file to be sent
     //recv_size = RecvSize(socket_fd);
     if(RecvSize(socket_fd) == text_size){
-        printf("SUCCESS - SEND PLAINTEXT\n");
+        SendTextfile(socket_fd, plaintext, text_size);
     }
-
+    else{
+        fprintf(stderr, "otp_enc_d did not return correct file size\n");
+        close(socket_fd);
+        exit(1);
+    }
+    //receive message from otp_enc_d confirming receipt of file contents
+    msg_buffer = RecvMsg(socket_fd);
+    if(strcmp(msg_buffer, "success") == 0){
+        free(msg_buffer);
+    }
+    else{
+        free(msg_buffer);
+        close(socket_fd);
+        exit(1);
+    }
+    //send size of key_file
+    text_size = FileSize(keytext);
+    if(text_size > 0){
+        //send size of keytext file to otp_enc_d
+        SendSize(socket_fd, &text_size);
+    }
+    else{
+        fprintf(stderr, "Invalid file size\n");
+        close(socket_fd);
+        exit(1);
+    }
+    //otp_enc_d confirms size of keytext file to be sent
+    //recv_size = RecvSize(socket_fd);
+    if(RecvSize(socket_fd) == text_size){
+        SendTextfile(socket_fd, keytext, text_size);
+    }
+    else{
+        fprintf(stderr, "otp_enc_d did not return correct file size\n");
+        close(socket_fd);
+        exit(1);
+    }
+    //receive message from otp_enc_d confirming receipt of file contents
+    msg_buffer = RecvMsg(socket_fd);
+    if(strcmp(msg_buffer, "success") == 0){
+        free(msg_buffer);
+    }
+    else{
+        free(msg_buffer);
+        close(socket_fd);
+        exit(1);
+    }
+    //receive encrypted plaintext message
     close(socket_fd);
     //send size of plaintext file
     //else
