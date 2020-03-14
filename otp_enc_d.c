@@ -10,23 +10,25 @@
 #include "network_helpers.h"
 
 #define BACKLOG 5
-#define MAX_PIDS 100
+#define MAX_PIDS 5
 
 static void altSIGTERM(int signo);
-void CleanProcesses();
-void RemoveProcess(int index);
+void CleanProcesses(int* child_pid_cnt);
 
-pid_t pids[MAX_PIDS];
 int child_pid_cnt = 0;
 
 int main(int argc, char *argv[]){ 
 
     int port_number, socket_fd, connection_fd;
     socklen_t sz_client_info;
-    //char msg_buf[256];
     struct sockaddr_in server_addr, client_addr;
-    
     pid_t child_pid = -5;
+    char* msg_buffer;
+    uint32_t ptext_size;
+    char* ptext;
+    uint32_t key_size;
+    char* ktext;
+    char* enc_text;
 
     struct sigaction SIGTERM_action = {0};
     SIGTERM_action.sa_handler = altSIGTERM;
@@ -69,8 +71,12 @@ int main(int argc, char *argv[]){
     }
     //infinite loop to accept connections and pull from queued incoming connections
     while(1){
+        //block accepting new connections until concurrent connections fall below 5
+        while(child_pid_cnt == MAX_PIDS){
+            CleanProcesses(&child_pid_cnt);
+        }
         if(child_pid_cnt > 0){
-            CleanProcesses();
+            CleanProcesses(&child_pid_cnt);
         }
         sz_client_info = sizeof(client_addr);
         //accept connection on socket or block until one connects
@@ -90,6 +96,9 @@ int main(int argc, char *argv[]){
                     if(VerifiedClient(connection_fd, "OTP_ENC")){
                         SendMsg(connection_fd, "success");
                     }
+                    else{
+                        close(connection_fd);
+                    }
                     sleep(10);
                     close(connection_fd);
                     exit(0);
@@ -108,54 +117,37 @@ int main(int argc, char *argv[]){
                     //send ciphertext to otp_enc
                     //close connection socket
                 default: //parent process
-                    //sleep(1);
-                    pids[child_pid_cnt++] = child_pid;
+                    child_pid_cnt++;
             }
         }
     }
     return 0;
 }
 /**********************************************************************
- * 
+ * altSIGTERM() - signal handler for SIGTERM
  **********************************************************************/
 static void altSIGTERM(int signo){
     int status;
-    
+    //clean up child processes
     while(child_pid_cnt > 0){
-        waitpid(-1, &status, 0);
-        child_pid_cnt--;
+        pid_t child_pid = waitpid(-1, &status, WNOHANG);
+        if(child_pid > 0){
+            child_pid_cnt--;
+        }   
     }
-    exit(0);
+    exit(0); //exit after clean up
 }
 /**********************************************************************
- * 
+ * CleanProcesses() - checks for terminated child processes and cleans 
+ * them up
  **********************************************************************/
-void CleanProcesses(){
-    int i = 0, status;
+void CleanProcesses(int* child_pid_cnt){
+    int i, status;
 
-    while(i <= child_pid_cnt && child_pid_cnt > 0){
-        pid_t child_pid = waitpid(pids[i], & status, WNOHANG);
-        if(child_pid == -1){
-            perror("Error with waitpid(): ");
+    for(i = 0; i < *child_pid_cnt; i++){
+        pid_t child_pid = waitpid(-1, &status, WNOHANG);
+        if(child_pid > 0){
+            (*child_pid_cnt)--;
         }
-        else if(child_pid > 0){
-            RemoveProcess(i);
-        }
-        i++;
     }
 }
-/**********************************************************************
- * 
- **********************************************************************/
-void RemoveProcess(int index){
-    int i;
-
-    for(i = index; i < child_pid_cnt; i++){
-        pids[i] = pids[i + 1];
-        printf("Removed process\n");
-    }
-    child_pid_cnt--;
-}
-/**********************************************************************
- * 
- **********************************************************************/
