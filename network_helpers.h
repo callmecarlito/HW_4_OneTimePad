@@ -2,7 +2,9 @@
 #define NETWORK_HELPERS
 
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
@@ -10,9 +12,14 @@
 #include <unistd.h>
 
 bool VerifiedClient(int connection_fd, char* client_id);
-bool RecvMsg(int connection_fd, char* expected_msg);
-void SendMsg(int connection_fd, char* message);
+char* RecvMsg(int connection_fd);
+void SendMsg(int connection_fd, void* message);
+uint32_t FileSize(char* file);
+int RecSize(int connection_fd);
+void SendSize(int connection_fd, int text_size);
 //char* RecvFileText(int connection_fd);
 //void SendFileText(int connection_fd, char* file_name);
+//void EncryptText();
+//void DecryptText();
 
 #endif
