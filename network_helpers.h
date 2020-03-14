@@ -15,8 +15,9 @@ bool VerifiedClient(int connection_fd, char* client_id);
 char* RecvMsg(int connection_fd);
 void SendMsg(int connection_fd, void* message);
 uint32_t FileSize(char* file);
-int RecSize(int connection_fd);
-void SendSize(int connection_fd, int text_size);
+uint32_t RecvSize(int connection_fd);
+void SendSize(int connection_fd, uint32_t* size);
+
 //char* RecvFileText(int connection_fd);
 //void SendFileText(int connection_fd, char* file_name);
 //void EncryptText();
