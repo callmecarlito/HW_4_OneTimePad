@@ -18,6 +18,7 @@ int main(int argc, char *argv[]){
     char* keytext = argv[2];
     char* msg_buffer;
     uint32_t text_size;
+    uint32_t recv_size;
     char* text;
 
     if(argc < 4){
@@ -62,7 +63,6 @@ int main(int argc, char *argv[]){
     //receive response from otp_enc_D
     msg_buffer = RecvMsg(socket_fd);
     if(strcmp(msg_buffer, "success") == 0){
-        printf("SUCCESS\n");
         free(msg_buffer);
     }
     else{
@@ -71,6 +71,15 @@ int main(int argc, char *argv[]){
         exit(1);
     }
     text_size = FileSize(plaintext);
+    //send size of plaintext file to otp_enc_d
+    SendSize(socket_fd, &text_size);
+    //otp_enc_d confirms size of plaintext file to be sent
+    //recv_size = RecvSize(socket_fd);
+    if(RecvSize(socket_fd) == text_size){
+        printf("SUCCESS - SEND PLAINTEXT\n");
+    }
+
+    close(socket_fd);
     //send size of plaintext file
     //else
         //close connection

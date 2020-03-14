@@ -99,7 +99,11 @@ int main(int argc, char *argv[]){
                     else{
                         close(connection_fd);
                     }
-                    sleep(10);
+                    //recv size of plaintext file from otp_enc
+                    ptext_size = RecvSize(connection_fd);
+                    //send message to otp_enc confirming size
+                    SendSize(connection_fd, &ptext_size);
+
                     close(connection_fd);
                     exit(0);
                     break;
