@@ -17,9 +17,8 @@ void SendMsg(int connection_fd, void* message);
 uint32_t FileSize(char* file);
 uint32_t RecvSize(int connection_fd);
 void SendSize(int connection_fd, uint32_t* size);
-
-//char* RecvFileText(int connection_fd);
-//void SendFileText(int connection_fd, char* file_name);
+char* RecvTextfile(int connection_fd, uint32_t size);
+void SendTextfile(int connection_fd, char* file_name, uint32_t size);
 //void EncryptText();
 //void DecryptText();
 
