@@ -61,7 +61,7 @@ otp_enc myplaintext mykey 57171 > ciphertext &
     - It should terminate 
     - Send error text to stderr
     - Set exit value to 1
- - Should NOT be able to connecto to otp_dec_d
+ - Should NOT be able to connect to otp_dec_d
    - Must have programs reject each other
    - If this occurs, otp_enc should report rejection to stderr and terminate itself
      - otp_enc at this point should not be able to connect even to otp_enc_d
