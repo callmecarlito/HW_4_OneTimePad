@@ -14,9 +14,11 @@ int main(int argc, char *argv[]){
     int port_number, socket_fd;
     struct sockaddr_in server_addr;
     struct hostent* server_info;
-
     char* plaintext = argv[1];
     char* keytext = argv[2];
+    char* msg_buffer;
+    uint32_t text_size;
+    char* text;
 
     if(argc < 4){
         fprintf(stderr, "Invalid number of arguments\n");
@@ -57,17 +59,33 @@ int main(int argc, char *argv[]){
 
     //send verifying information to otp_enc_d
     SendMsg(socket_fd, "OTP_ENC");
-    if(RecvMsg(socket_fd, "success")){
-        printf("CONNECTION TO OTP_ENC_D SUCCESSFUL\n");
+    //receive response from otp_enc_D
+    msg_buffer = RecvMsg(socket_fd);
+    if(strcmp(msg_buffer, "success") == 0){
+        printf("SUCCESS\n");
+        free(msg_buffer);
     }
-
+    else{
+        free(msg_buffer);
+        close(socket_fd);
+        exit(1);
+    }
+    text_size = FileSize(plaintext);
     //send size of plaintext file
+    //else
+        //close connection
+        //exit(1);
+
     //recv confirmation of size from otp_enc_d
+        //if correct
+            //send plaintext
+        //else
+            //close connection
+            //exit(1);
 
-    //send plaintext
     //recv success
-
-    //send size of key
+        //if succcess
+            //send size of key
     //recv confirmation of size
 
     //send key
