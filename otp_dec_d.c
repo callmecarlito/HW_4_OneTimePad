@@ -29,7 +29,7 @@ int main(int argc, char *argv[]){
     char* ptext;
     uint32_t key_size;
     char* ktext;
-    //char* enc_text;
+    //char* dec_text;
 
     struct sigaction SIGTERM_action = {0};
     SIGTERM_action.sa_handler = altSIGTERM;
@@ -38,14 +38,14 @@ int main(int argc, char *argv[]){
     sigaction(SIGTSTP, &SIGTERM_action, NULL);
 
     if(argc < 2){
-        fprintf(stderr, "otp_enc_d: Invalid number of arguments\n");
+        fprintf(stderr, "otp_dec_d: Invalid number of arguments\n");
         exit(1);
     }
 
     port_number = atoi(argv[1]); //convert user entered port number to int
 
     if(port_number == 0){
-        fprintf(stderr, "otp_enc_d: Invalid port number entered\n");
+        fprintf(stderr, "otp_dec_d: Invalid port number entered\n");
         exit(1);
     }    
     //set up address struct for server
@@ -57,17 +57,17 @@ int main(int argc, char *argv[]){
     //set up socket
     socket_fd = socket(AF_INET, SOCK_STREAM, 0); //domain: IPV4; type: TCP; protocol: default  
     if(socket_fd < 0){
-        perror("otp_enc_d listening socket set up error: ");
+        perror("otp_dec_d listening socket set up error: ");
         exit(1);
     }
     //bind socket to address
     if(bind(socket_fd, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0){
-        perror("otp_enc_d error binding socket: ");
+        perror("otp_dec_d error binding socket: ");
         exit(1);
     }
     //begin listening on socket
     if(listen(socket_fd, BACKLOG) < 0){
-        perror("otp_enc_d error listening on socket: ");
+        perror("otp_dec_d error listening on socket: ");
         exit(1);
     }
     //infinite loop to accept connections and pull from queued incoming connections
@@ -83,7 +83,7 @@ int main(int argc, char *argv[]){
         //accept connection on socket or block until one connects
         connection_fd = accept(socket_fd, (struct sockaddr*)&client_addr, &sz_client_info);
         if(connection_fd < 0){
-            perror("otp_enc_d error accepting connection: ");
+            perror("otp_dec_d error accepting connection: ");
             continue;
         }
         else{
@@ -91,10 +91,10 @@ int main(int argc, char *argv[]){
             child_pid = fork();
             switch(child_pid){
                 case -1: //fork error
-                    perror("otp_enc_d fork error: "); break;
+                    perror("otp_dec_d fork error: "); break;
                 case 0: //child process
-                    //recv message verifying id of otp_enc
-                    if(VerifiedClient(connection_fd, "OTP_ENC")){
+                    //recv message verifying id of otp_dec
+                    if(VerifiedClient(connection_fd, "OTP_DEC")){
                         SendMsg(connection_fd, "success");
                     }
                     else{
@@ -102,10 +102,10 @@ int main(int argc, char *argv[]){
                         exit(2);
                         break;
                     }
-                    //recv size of plaintext file from otp_enc
+                    //recv size of plaintext file from otp_dec
                     ptext_size = RecvSize(connection_fd);
                     if(ptext_size > 0){
-                        //send message to otp_enc confirming size
+                        //send message to otp_dec confirming size
                         SendSize(connection_fd, &ptext_size);
                     }
                     else{
@@ -125,10 +125,10 @@ int main(int argc, char *argv[]){
                         exit(1);
                         break;
                     }
-                    //recv size of keytext file from otp_enc
+                    //recv size of keytext file from otp_dec
                     key_size = RecvSize(connection_fd);
                     if(key_size >= ptext_size){
-                        //send message to otp_enc confirming size
+                        //send message to otp_dec confirming size
                         SendSize(connection_fd, &key_size);
                     }
                     else{
@@ -157,7 +157,7 @@ int main(int argc, char *argv[]){
                     exit(0);
                     break;
                     //encode plaintext using key_file
-                    //send ciphertext to otp_enc
+                    //send ciphertext to otp_dec
                     //close connection socket
                 default: //parent process
                     child_pid_cnt++;
@@ -197,45 +197,3 @@ void CleanProcesses(int* child_pid_cnt){
 /**********************************************************************
  * 
  **********************************************************************/
-
-/***********************************************************************
-char* EncodeText(char* plaintext, char* keytext){
-    //enum char_set {A, 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 
-    //              'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 
-    //              'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', ' '};
-    //enum char_set{A = 0, B = 1, C = 2, D, E, F, G, H, I,
-    //              J, K, L, M, N, O, P, Q, R,
-    //              S, T, U, V, X, Y, Z," " = 27};
-    int i;
-    enum char_set j;
-    int* plaincode;
-    int* keycode;
-    int enc_length = strlen(plaintext);
-    plaincode = calloc(enc_length, sizeof *plaincode);
-    if(plaincode == NULL){
-        perror("Error allocating memory for enc: ");
-    }
-    keycode = calloc(enc_length, sizeof *keycode);
-    if(keycode == NULL){
-        perror("Error allocating memory for enc: ");
-    }
-
-    for(i = 0; i < enc_length; i++){
-        for(j = 'A'; j <= ' '; j++){
-            if(plaintext[i] == j){
-                plaincode[i] = j;
-                break;
-            }
-        }
-    }
-    printf("%s[%d]\n", plaintext, enc_length);
-    for(i = 0; i < enc_length; i++){
-        printf("%d", plaincode[i]);
-    }
-    printf("[%d]\n", enc_length);
-    
-    free(plaincode);
-    free(keycode);
-    return NULL;
-}
-***********************************************************************/
