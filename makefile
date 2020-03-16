@@ -4,7 +4,7 @@ CC = gcc
 #-g -ansi -Wall - pedantic -std=gnu99 -I -Wno-missing-braces
 CFLAGS = -g -Wall -I -std=gnu99 -Wno-missing-braces
 
-all: keygen otp_enc_d otp_enc
+all: keygen otp_enc_d otp_enc otp_dec_d otp_dec
 
 keygen: keygen.c
 	$(CC) -o keygen keygen.c $(CFLAGS)
@@ -18,7 +18,7 @@ otp_enc: otp_enc.c network_helpers.c
 otp_dec_d: otp_dec_d.c network_helpers.c
 	$(CC) -o otp_dec_d otp_dec_d.c network_helpers.c $(CFLAGS)
 
-otp_dec: otp_edec.c network_helpers.c
+otp_dec: otp_dec.c network_helpers.c
 	$(CC) -o otp_dec otp_dec.c network_helpers.c $(CFLAGS)
 
 clean:

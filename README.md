@@ -92,13 +92,15 @@ otp_dec ciphertext mykey 57171 > plaintext &
 - Syntax: `keygen [KEYLENGTH]` where `[KEYLENGTH]` is the lenght of the key file in characters
 - Keygen should output to stdout
 ## Files
-1.
-2.
-3.
-4.
-5.
-6.
-7.
+1. keygen.c
+2. otp_enc_d.c
+3. otp_enc.c
+4. otp_dec_d.c
+5. otp_dec.c
+6. network_helpers.h
+7. network_helpers.c
+8. makefile
+9. compileall
 ## Compilation
-For this project we are utilizing a bash test script to compile all five programs. File name: `compileall`
+For this project we are utilizing a bash test script to compile all five programs. Make sure all listed files are contained within the same directory. File name: `compileall` when executed will compile each program and make them ready for execution. First, `compileall` will need to be made an executable file. To do so, from the terminal command, enter `chmod +x compileall`. Then enter `./compileall` and the programs should all compile.  
 

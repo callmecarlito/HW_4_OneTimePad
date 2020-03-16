@@ -14,7 +14,8 @@ pseudocode after connection is accepted b/w otp_enc_d and otp_enc
 otp_enc_d:
 
 (after connection established and child spawned)
-if verify_id
+if VerifiedClient
+  send success
 
     recv message from otp_enc
       if messsage confirms otp_enc 
