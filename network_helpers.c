@@ -151,9 +151,9 @@ void SendTextfile(int connection_fd, char* file_name, uint32_t size){
         return;
     }
     fgets(text, size, textfile);  
-    if(text[size + 1] == '\n'){
-        text[size + 1] = '\0';
-    }
+    //if(text[size + 1] == '\n'){
+    //    text[size + 1] = '\0';
+    //}
     while(size > 0){
         bytes_sent = send(connection_fd, &text[total_bytes], size, 0);
         if(bytes_sent == -1){
