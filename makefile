@@ -15,5 +15,11 @@ otp_enc_d: otp_enc_d.c network_helpers.c
 otp_enc: otp_enc.c network_helpers.c
 	$(CC) -o otp_enc otp_enc.c network_helpers.c $(CFLAGS)
 
+otp_dec_d: otp_dec_d.c network_helpers.c
+	$(CC) -o otp_dec_d otp_dec_d.c network_helpers.c $(CFLAGS)
+
+otp_dec: otp_edec.c network_helpers.c
+	$(CC) -o otp_dec otp_dec.c network_helpers.c $(CFLAGS)
+
 clean:
-	$(RM) keygen otp_enc_d otp_enc *.o *~
+	$(RM) keygen otp_enc_d otp_enc otp_dec_d otp_dec *.o *~
