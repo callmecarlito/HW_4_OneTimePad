@@ -1,5 +1,5 @@
-# HW_4_OneTimePad
-This was our capstone project in our Operating Systems (CS344) course which combined the topics of multiprocessing and socket-based inter-process communication. In addition, the program will also handle encryption and decryption of information using a one-time pad-like system.
+# One Time Pad
+This was one of our projects in our Operating Systems (CS344) course which combined the topics of multiprocessing and socket-based inter-process communication. In addition, the program will also handle encryption and decryption of information using a one-time pad-like system.
 
 reference: [One-Time Pad](http://en.wikipedia.org/wiki/One-time_pad)
 ##### Definitions
