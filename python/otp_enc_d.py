@@ -5,7 +5,7 @@ import time
 
 HEADERSIZE = 10
 
-class SocketServer():
+class ServerSocket():
 
     def __init__(self, host, port):
         self.host = host
@@ -70,5 +70,5 @@ if __name__ == "__main__":
     HOST = socket.gethostname()
     PORT = 5757  
     
-    s = SocketServer(HOST, PORT)
+    s = ServerSocket(HOST, PORT)
     s.start_server()
