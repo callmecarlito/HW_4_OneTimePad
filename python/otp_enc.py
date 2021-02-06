@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import random
 import socket
 import sys
 import tqdm
@@ -60,6 +61,27 @@ class OTPEncodeClient():
             print(f"[+]Data sent: {data}")
             self.conn_socket.send(bytes(data, "utf-8"))
 
+    def make_key(self, text):
+        char_set = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ ' #set of valid chars to create key
+        key_file = "key.txt"
+        key_len = len(text) #find len(text)
+        key = ''.join(random.choice(char_set) for letter in text)
+        print(f"[+]Key generated")
+
+        try:
+            with open(key_file, 'w') as f:
+                print(f"[+]{key_file} opened")
+                f.write(key)
+                print(f"[+]{key_file} written")
+                return key_file
+        except OSError as e:
+            print(f"[+]Failed to open/write {key_file}\nError: {e}")
+            return None
+        
+
+
+        
+
 #once connection is established, sends plaintext and key to otp_enc_d
     #needs to check plaintext and key for invalid characters
     #key should be the same size as the plaintext
@@ -75,8 +97,7 @@ if __name__ == "__main__":
     c.connect_to_server() #connect to server
 
     plaintext = c.read_file(sys.argv[1]) #plaintext file name passed to read_file()
-    #key = c.read_file(sys.argv[2]) #key file name
-    ciphertext = None
+    key_file = c.make_key(plaintext)
 
     #check text values are not none
     #check text values contain valid chars
