@@ -3,6 +3,7 @@ import os
 import random
 import socket
 import sys
+import time
 import tqdm
 
 HEADER_SIZE = 10
@@ -50,16 +51,33 @@ class OTPEncodeClient():
         
         return file_contents
 
+    def send_data(self, text):
+        data = f'{len(text):<{HEADER_SIZE}}' + text
+        print(f"[+]Data sent: {data}")
+        self.conn_socket.send(bytes(data, "utf-8"))
+
+    def recv_data(self):
+        full_data = ''
+        new_data = True
+
+        while True:
+            data = self.conn_socket.recv(BUFFER_SIZE)
+            if new_data:
+                print(f"[+]New message length: {data[:HEADER_SIZE]}")
+                data_len = int(data[:HEADER_SIZE])
+                new_data = False
+
+            full_data += data.decode("utf-8")
+            if len(full_data)-HEADER_SIZE == data_len:
+                print(f"[+]Message received: {full_data[HEADER_SIZE:]}")
+                full_data  = full_data[HEADER_SIZE:]
+                break
+
+        return full_data
 
     def valid_text(self, text):
         regex = re.compile("^[A-Z ]*$")
         return not regex.match(text) is None
-
-    def send_data(self, text):
-        with self.conn_socket:
-            data = f'{len(text):<{HEADER_SIZE}}' + text
-            print(f"[+]Data sent: {data}")
-            self.conn_socket.send(bytes(data, "utf-8"))
 
     def make_key(self, text):
         char_set = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ ' #set of valid chars to create key
@@ -68,12 +86,13 @@ class OTPEncodeClient():
         key = ''.join(random.choice(char_set) for letter in text)
         print(f"[+]Key generated")
 
+        #create key file and write the key to it
         try:
             with open(key_file, 'w') as f:
                 print(f"[+]{key_file} opened")
                 f.write(key)
                 print(f"[+]{key_file} written")
-                return key_file
+                return key
         except OSError as e:
             print(f"[+]Failed to open/write {key_file}\nError: {e}")
             return None
@@ -92,18 +111,26 @@ if __name__ == "__main__":
     HOST = socket.gethostname()
     PORT = 5757
 
+    if len(sys.argv) != 2:
+        print("[+]Invalid number of arguments. Exiting client")
+        sys.exit(1)
+
     c = OTPEncodeClient(HOST, PORT) #instantiate OTPEncodeClient object
     c.start_client() #create client socket
     c.connect_to_server() #connect to server
 
     plaintext = c.read_file(sys.argv[1]) #plaintext file name passed to read_file()
-    key_file = c.make_key(plaintext)
+    key = c.make_key(plaintext)
 
     #check text values are not none
     #check text values contain valid chars
     #check text values for same length
     
     c.send_data(plaintext)
+    serv_recvd = int(c.recv_data())
+    if serv_recvd == len(plaintext):
+        print("[+]Server received plaintext. Sending key...")
+        c.send_data(key)
     
     #receive ciphertext from server
 
