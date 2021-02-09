@@ -62,12 +62,33 @@ class OTPEncodeServer():
         print(f"[+]Data sent: {data}")
         self.conn_socket.send(bytes(data, "utf-8"))
 
-    def encode_text(self, text1, text2):
-        #return ciphertext
-        pass    
+    def encode_text(self, plaintext, key):
+        enc_key = {
+            'A': 0, 'B': 1,  'C': 2,  'D': 3,  'E': 4,  'F': 5,  'G': 6,  'H': 7,  'I': 8,
+            'J': 9, 'K': 10, 'L': 11, 'M': 12, 'N': 13, 'O': 14, 'P': 15, 'Q': 16, 'R': 17,
+            'S': 18,'T': 19, 'U': 20, 'V': 21, 'W': 22, 'X': 23, 'Y': 24, 'Z': 25, ' ': 26, 
+        }
+
+        #convert each char into their numerical value
+        ptext = [enc_key[letter] for letter in plaintext]
+        ktext = [enc_key[letter] for letter in key]
+        #take the sum of the plaintext char and the key char, modula 27, to get the value of the ciphertext char
+        ctext = [ (p+k)%len(enc_key) for p,k in zip(ptext, ktext) ]
+        print(f"[+]Cipher values: {ctext}")
+
+        #convert numerical representation to string
+        ciphertext = []
+        for val in ctext:
+            #appends the key that matches the numerical value (val)
+            ciphertext.append(list(enc_key.keys())[list(enc_key.values()).index(val)])
+        ciphertext = ''.join(ciphertext) #converts list of chars to string
+        print(f"[+]Ciphertext: {ciphertext}")
+
+        return ciphertext
 
     def client_encode(self):
-        while True:
+        connected = True
+        while connected:
             self.conn_socket, clientaddr = self.server_socket.accept() #accept incoming connection
             
             plaintext = self.recv_data()
@@ -81,22 +102,11 @@ class OTPEncodeServer():
             if len(plaintext) == len(key):
                 print("[+]Begin encoding...")
                 ciphertext = self.encode_text(plaintext, key)
-            """  
-            with conn_socket:
-                print(f"[+]Connected to: {clientaddr}")
-
-                #receive plaintext
-                plaintext = self.recv_data(conn_socket)
-                print(f"[+]Plaintext: {plaintext}")
-                #receive key
-                key = self.recv_data(conn_socket)
-                print(f"[+]Key: {key}")
-                 
-                if len(plaintext) == len(key):
-                    print(f"[+]Encoding plaintext") 
-                #encode plaintext -> ciphertext
-                #send ciphertext      
-            """
+                self.send_data(ciphertext)
+            else:
+                print("[+]Unable to encode. Closing connection")
+            self.conn_socket.close()    
+            connected = False
 
 
 #should use command line arg for port number
