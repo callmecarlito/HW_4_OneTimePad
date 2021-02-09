@@ -45,6 +45,7 @@ class OTPEncodeClient():
                     with open(file_name, 'r') as f: #opens file as read only
                         print(f"[+]{file_name} opened")
                         file_contents = f.read() #reads the file text
+                        file_contents = file_contents.strip('\n') #remove terminating newline char
                         print(f"[+]{file_name} read")
                 except OSError as e:
                     print(f"[+]Failed to open/read {file_name}\nError: {e}")
@@ -87,19 +88,18 @@ class OTPEncodeClient():
         print(f"[+]Key generated")
 
         #create key file and write the key to it
+        self.write_to_file(key_file, key)
+
+        return key
+
+    def write_to_file(self, file_name, text):
         try:
-            with open(key_file, 'w') as f:
-                print(f"[+]{key_file} opened")
-                f.write(key)
-                print(f"[+]{key_file} written")
-                return key
+            with open(file_name, 'w') as f:
+                print(f"[+]{file_name} opened")
+                f.write(text)
+                print(f"[+]{file_name} written")
         except OSError as e:
-            print(f"[+]Failed to open/write {key_file}\nError: {e}")
-            return None
-        
-
-
-        
+            print(f"[+]Failed to open/write {file_name}\nError: {e}")
 
 #once connection is established, sends plaintext and key to otp_enc_d
     #needs to check plaintext and key for invalid characters
@@ -133,4 +133,6 @@ if __name__ == "__main__":
         c.send_data(key)
     
     #receive ciphertext from server
-
+    ciphertext = c.recv_data()
+    print(f"[+]Received ciphertext: {ciphertext}")
+    c.write_to_file("ciphertext.txt", ciphertext)
