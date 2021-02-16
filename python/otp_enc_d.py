@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import signal
 import socket
 import sys
 import tqdm
@@ -20,6 +21,7 @@ class OTPEncodeServer():
             #addres family: AF_INET(IPv4) 
             #socket type: SOCK_STREAM (TCP)
             self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #create new socket
+            self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) #makes address reusable
             print("[+]Server socket created")
         except OSError as e:
             print(f"[+]Unable to create socket: {e}")
@@ -45,13 +47,13 @@ class OTPEncodeServer():
         while True:
             data = self.conn_socket.recv(BUFFER_SIZE)
             if new_data:
-                print(f"[+]New message length: {data[:HEADER_SIZE]}")
+                #print(f"[+]New message length: {data[:HEADER_SIZE]}")
                 data_len = int(data[:HEADER_SIZE])
                 new_data = False
 
             full_data += data.decode("utf-8")
             if len(full_data)-HEADER_SIZE == data_len:
-                print(f"[+]Message received: {full_data[HEADER_SIZE:]}")
+                #print(f"[+]Message received: {full_data[HEADER_SIZE:]}")
                 full_data  = full_data[HEADER_SIZE:]
                 break
 
@@ -59,7 +61,7 @@ class OTPEncodeServer():
     
     def send_data(self, text):
         data = f'{len(text):<{HEADER_SIZE}}' + text
-        print(f"[+]Data sent: {data}")
+        #print(f"[+]Data sent: {data}")
         self.conn_socket.send(bytes(data, "utf-8"))
 
     def encode_text(self, plaintext, key):
@@ -74,7 +76,7 @@ class OTPEncodeServer():
         ktext = [enc_key[letter] for letter in key]
         #take the sum of the plaintext char and the key char, modula 27, to get the value of the ciphertext char
         ctext = [ (p+k)%len(enc_key) for p,k in zip(ptext, ktext) ]
-        print(f"[+]Cipher values: {ctext}")
+        #print(f"[+]Cipher values: {ctext}")
 
         #convert numerical representation to string
         ciphertext = []
@@ -82,44 +84,40 @@ class OTPEncodeServer():
             #appends the key that matches the numerical value (val)
             ciphertext.append(list(enc_key.keys())[list(enc_key.values()).index(val)])
         ciphertext = ''.join(ciphertext) #converts list of chars to string
-        print(f"[+]Ciphertext: {ciphertext}")
+        #print(f"[+]Ciphertext: {ciphertext}")
 
         return ciphertext
 
-    def client_encode(self):
+    def handle_connection(self):
         connected = True
         while connected:
             self.conn_socket, clientaddr = self.server_socket.accept() #accept incoming connection
-            
-            plaintext = self.recv_data()
-            print(f"[+]Plaintext: {plaintext}")
+            print(f"[+]Connected to {clientaddr[0]}: {clientaddr[1]}")
 
-            self.send_data(str(len(plaintext)))
+            plaintext = self.recv_data() #receives plaintext message from client
+            #print(f"[+]Plaintext: {plaintext}")
 
-            key = self.recv_data()
-            print(f"[+]Key: {key}")
+            self.send_data(str(len(plaintext))) #sends size of plaintext to client as a confirmation of receipt
 
-            if len(plaintext) == len(key):
+            key = self.recv_data() #receives key from client
+            #print(f"[+]Key: {key}")
+
+            if len(plaintext) == len(key): #verify size of plaintext and key are equal
                 print("[+]Begin encoding...")
                 ciphertext = self.encode_text(plaintext, key)
-                self.send_data(ciphertext)
+                self.send_data(ciphertext) #send ciphertext to client
+                print("[+]Encrypted message sent")
             else:
                 print("[+]Unable to encode. Closing connection")
             self.conn_socket.close()    
             connected = False
-
-
-#should use command line arg for port number
-    #don't forget to cast as int
-#should run in background or as a daemon
-#should output error if there's a network error
-
-#after connection is made:
-    #verify client is otp_enc
-    #then receive plaintext file and key from otp_enc
-    #verify key passed should be equal in size to the plaintext
-
-#server encrypts the plaintext and returns the ciphertext
+    
+    def sigint_handler(self, sig, frame):
+        print("\n[+]Shutting down server")
+        #self.server_socket.shutdown(socket.SHUT_RDWR)
+        self.server_socket.close()
+        print("[+]Goodbye")
+        sys.exit(0)
 
 if __name__ == "__main__":
     HOST = socket.gethostname()
@@ -127,5 +125,9 @@ if __name__ == "__main__":
     
     s = OTPEncodeServer(HOST, PORT)
     s.start_server()
+    
+    signal.signal(signal.SIGINT, s.sigint_handler)
+    print("[+]Press Ctrl+C to shutdown server")
+    
     while True:
-        s.client_encode()
+        s.handle_connection()
